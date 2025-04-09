@@ -55,7 +55,7 @@ main :: proc() {
 	death: f32 = 1
 	border_width := player.width * 3
 	border_height := player.height * 3
-	x := 0
+	light := true
 
 	sb := strings.builder_make_len(500)
 
@@ -73,6 +73,7 @@ main :: proc() {
 		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
 		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
 		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
+		if rl.IsKeyPressed(.M) do light = !light
 		player.x = clamp(
 			player.x,
 			border_width,
@@ -87,28 +88,34 @@ main :: proc() {
 		rl.BeginDrawing()
 		defer rl.EndDrawing()
 
-		rl.ClearBackground(rl.WHITE)
-		rl.DrawRectangle(0, 0, i32(border_width), rl.GetScreenHeight(), {0, 0, 0, 100})
+		rl.ClearBackground(light ? rl.WHITE : rl.BLACK)
+		rl.DrawRectangle(
+			0,
+			0,
+			i32(border_width),
+			rl.GetScreenHeight(),
+			light ? {0, 0, 0, 100} : {255, 255, 255, 100},
+		)
 		rl.DrawRectangle(
 			i32(border_width),
 			0,
 			rl.GetScreenWidth() - i32(border_width) * 2,
 			i32(border_height),
-			{0, 0, 0, 100},
+			light ? {0, 0, 0, 100} : {255, 255, 255, 100},
 		)
 		rl.DrawRectangle(
 			rl.GetScreenWidth() - i32(border_width),
 			rl.GetScreenHeight(),
 			-rl.GetScreenWidth() + i32(border_width) * 2,
 			-i32(border_width),
-			{0, 0, 0, 100},
+			light ? {0, 0, 0, 100} : {255, 255, 255, 100},
 		)
 		rl.DrawRectangle(
 			rl.GetScreenWidth(),
 			rl.GetScreenHeight(),
 			-i32(border_height),
 			-rl.GetScreenWidth(),
-			{0, 0, 0, 100},
+			light ? {0, 0, 0, 100} : {255, 255, 255, 100},
 		)
 
 		rl.DrawRectangleV(
@@ -121,7 +128,8 @@ main :: proc() {
 			rl.DrawRectangleV(
 				{s.square.x, s.square.y},
 				{s.square.width, s.square.height},
-				good == idx ? rl.GREEN : rl.BLACK,
+				// TODO: STOP JUST LIKE DON'T
+				good == idx ? light ? rl.GREEN : rl.LIME : light ? rl.BLACK : rl.WHITE,
 			)
 			if death <= 0 {
 				if rl.CheckCollisionRecs(s.square, player) {
@@ -167,7 +175,7 @@ main :: proc() {
 			i32(border_width) + 10,
 			i32(border_height) + 10,
 			20,
-			rl.BLACK,
+			light ? rl.BLACK : rl.WHITE,
 		)
 		strings.builder_reset(&sb)
 	}
