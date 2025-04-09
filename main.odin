@@ -86,11 +86,17 @@ main :: proc() {
 
 		rl.ClearBackground(rl.WHITE)
 		rl.DrawRectangle(0, 0, i32(border_width), rl.GetScreenHeight(), {0, 0, 0, 100})
-		rl.DrawRectangle(0, 0, rl.GetScreenWidth(), i32(border_height), {0, 0, 0, 100})
 		rl.DrawRectangle(
-			rl.GetScreenWidth(),
+			i32(border_width),
+			0,
+			rl.GetScreenWidth() - i32(border_width) * 2,
+			i32(border_height),
+			{0, 0, 0, 100},
+		)
+		rl.DrawRectangle(
+			rl.GetScreenWidth() - i32(border_width),
 			rl.GetScreenHeight(),
-			-rl.GetScreenWidth(),
+			-rl.GetScreenWidth() + i32(border_width) * 2,
 			-i32(border_width),
 			{0, 0, 0, 100},
 		)
