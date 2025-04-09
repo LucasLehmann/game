@@ -10,6 +10,7 @@ import "core:strconv"
 import "core:strings"
 import "core:time"
 
+// version: 1
 Object :: struct {
 	square: rl.Rectangle,
 	target: rl.Vector2,
