@@ -51,14 +51,24 @@ main :: proc() {
 	scores: [dynamic]int
 	avg_score: f32
 	dt: f32
-	invuln: f32
+	invuln: f32 = 3
 	border_width := player.width * 3
 	border_height := player.height * 3
+	x := 0
 
-	sb := strings.builder_make_len(100)
+	sb := strings.builder_make_len(500)
 
 	for i in 0 ..< square_count {
-		append(&squares, Object{{0, 0, 20, 20}, {0, 0}})
+		append(
+			&squares,
+			Object {
+				{0, 0, 20, 20},
+				{
+					rand.float32_range(0, f32(rl.GetScreenWidth())),
+					rand.float32_range(0, f32(rl.GetScreenHeight())),
+				},
+			},
+		)
 	}
 
 	for !rl.WindowShouldClose() {
