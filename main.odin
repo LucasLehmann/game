@@ -77,6 +77,7 @@ main :: proc() {
 		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
 		if rl.IsKeyPressed(.M) do light = !light
 		if rl.IsKeyPressed(.H) do hud = !hud
+
 		player.x = clamp(
 			player.x,
 			border_width,
@@ -132,7 +133,7 @@ main :: proc() {
 				{s.square.x, s.square.y},
 				{s.square.width, s.square.height},
 				// TODO: STOP JUST LIKE DON'T
-				good == idx ? light ? rl.GREEN : rl.LIME : light ? rl.BLACK : rl.WHITE,
+				good == idx ? light ? rl.GREEN : rl.DARKGREEN : light ? rl.BLACK : rl.WHITE,
 			)
 			if death <= 0 {
 				if rl.CheckCollisionRecs(s.square, player) {
@@ -163,8 +164,6 @@ main :: proc() {
 			s.square.y = math.lerp(s.square.y, s.target.y, 1 - math.pow(0.5, lerp_speed * dt))
 		}
 		rl.DrawFPS(rl.GetScreenWidth() - 100, 10)
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
-		strings.builder_reset(&sb)
 
 		if hud {
 			fmt.sbprintln(&sb, "High score:", high_score)
@@ -184,4 +183,12 @@ main :: proc() {
 			strings.builder_reset(&sb)
 		}
 	}
+	fmt.println("Scores:", scores)
+	fmt.println("High score:", high_score)
+	fmt.println("Score:", score)
+	fmt.println("Square count:", len(squares))
+	fmt.println("Average score:", avg_score)
+	fmt.println("Movement speed:", speed)
+	fmt.println("Speed:", lerp_speed)
+	fmt.println("Deaths:", deaths)
 }
