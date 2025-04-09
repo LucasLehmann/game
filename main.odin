@@ -43,15 +43,19 @@ main :: proc() {
 	speed := f32(len(os.args) > 2 ? strconv.atof(os.args[2]) : 50)
 	lerp_speed := f32(len(os.args) > 3 ? strconv.atof(os.args[3]) : 1)
 	invuln_timer := f32(len(os.args) > 4 ? strconv.atof(os.args[4]) : 0.5)
+
 	score := 0
 	high_score := 0
-	good := 0
-	deaths := 0
-	scores: [dynamic]int
 	avg_score: f32
+	scores: [dynamic]int
+	// defer delete(scores)
+	deaths := 0
+
+	good := 0
 	dt: f32
 	invuln: f32
 	death: f32 = 1
+
 	border_width := player.width * 3
 	border_height := player.height * 3
 
@@ -68,15 +72,15 @@ main :: proc() {
 		dt = rl.GetFrameTime()
 		invuln -= dt
 		death -= dt
-		if rl.IsKeyDown(.W) do player.y -= 10 * speed * dt
-		if rl.IsKeyDown(.S) do player.y += 10 * speed * dt
-		if rl.IsKeyDown(.D) do player.x += 10 * speed * dt
-		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
-		if rl.IsKeyPressed(.EIGHT) do rl.SetTargetFPS(120)
-		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
-		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
-		if rl.IsKeyPressed(.M) do light = !light
-		if rl.IsKeyPressed(.H) do hud = !hud
+		if rl.IsKeyDown(.W) {player.y -= 10 * speed * dt}
+		if rl.IsKeyDown(.S) {player.y += 10 * speed * dt}
+		if rl.IsKeyDown(.D) {player.x += 10 * speed * dt}
+		if rl.IsKeyDown(.A) {player.x -= 10 * speed * dt}
+		if rl.IsKeyPressed(.EIGHT) {rl.SetTargetFPS(120)}
+		if rl.IsKeyPressed(.NINE) {rl.SetTargetFPS(60)}
+		if rl.IsKeyPressed(.ZERO) {rl.SetTargetFPS(0)}
+		if rl.IsKeyPressed(.M) {light = !light}
+		if rl.IsKeyPressed(.H) {hud = !hud}
 
 		player.x = clamp(
 			player.x,
@@ -141,7 +145,7 @@ main :: proc() {
 						good = (good + 1) % len(squares)
 						score += 1
 						invuln = invuln_timer
-						if score > high_score do high_score = score
+						if score > high_score {high_score = score}
 					} else if (idx + 1) % len(squares) == good && invuln > 0 {
 						// just ignore previous green square
 					} else {
