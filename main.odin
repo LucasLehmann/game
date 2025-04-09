@@ -30,7 +30,7 @@ main :: proc() {
 			fallthrough
 		case "?":
 			fmt.println("game [Square count] [Movement speed] [Square speed] [Invuln timer (s)]")
-			fmt.println("defaults 10 50 1 0.1")
+			fmt.println("defaults 10 50 1 0.5")
 			return
 		}
 	}
@@ -43,7 +43,7 @@ main :: proc() {
 	square_count := len(os.args) > 1 ? strconv.atoi(os.args[1]) : 10
 	speed := f32(len(os.args) > 2 ? strconv.atof(os.args[2]) : 50)
 	lerp_speed := f32(len(os.args) > 3 ? strconv.atof(os.args[3]) : 1)
-	invuln_timer := f32(len(os.args) > 4 ? strconv.atof(os.args[4]) : 0.1)
+	invuln_timer := f32(len(os.args) > 4 ? strconv.atof(os.args[4]) : 0.5)
 	score := 0
 	high_score := 0
 	good := 0
@@ -52,6 +52,8 @@ main :: proc() {
 	avg_score: f32
 	dt: f32
 	invuln: f32
+	border_width := player.width * 3
+	border_height := player.height * 3
 
 	sb := strings.builder_make_len(100)
 
@@ -68,17 +70,38 @@ main :: proc() {
 		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
 		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
 		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
-		player.x = clamp(player.x, player.width * 3, f32(rl.GetScreenWidth()) - player.width * 4)
+		player.x = clamp(
+			player.x,
+			border_width,
+			f32(rl.GetScreenWidth()) - border_width - player.width,
+		)
 		player.y = clamp(
 			player.y,
-			player.height * 3,
-			f32(rl.GetScreenHeight()) - player.height * 4,
+			border_height,
+			f32(rl.GetScreenHeight()) - border_height - player.height,
 		)
 
 		rl.BeginDrawing()
 		defer rl.EndDrawing()
 
 		rl.ClearBackground(rl.WHITE)
+		rl.DrawRectangle(0, 0, i32(border_width), rl.GetScreenHeight(), {0, 0, 0, 100})
+		rl.DrawRectangle(0, 0, rl.GetScreenWidth(), i32(border_height), {0, 0, 0, 100})
+		rl.DrawRectangle(
+			rl.GetScreenWidth(),
+			rl.GetScreenHeight(),
+			-rl.GetScreenWidth(),
+			-i32(border_width),
+			{0, 0, 0, 100},
+		)
+		rl.DrawRectangle(
+			rl.GetScreenWidth(),
+			rl.GetScreenHeight(),
+			-i32(border_height),
+			-rl.GetScreenWidth(),
+			{0, 0, 0, 100},
+		)
+
 		rl.DrawRectangleV(
 			{player.x, player.y},
 			{player.width, player.height},
@@ -101,7 +124,7 @@ main :: proc() {
 					// just ignore previous green square
 				} else {
 					append(&scores, score)
-					avg_score = avg_score + f32(score) / 2
+					avg_score = (avg_score + f32(score)) / 2
 					player.x = 0
 					player.y = 0
 					score = 0
@@ -112,8 +135,6 @@ main :: proc() {
 				s.target.x = rand.float32_range(0, f32(rl.GetScreenWidth()))
 				s.target.y = rand.float32_range(0, f32(rl.GetScreenHeight()))
 			}
-			// s.square.x = math.lerp(s.square.x, s.target.x, lerp_speed * dt)
-			// s.square.y = math.lerp(s.square.y, s.target.y, lerp_speed * dt)
 			s.square.x = math.lerp(s.square.x, s.target.x, 1 - math.pow(0.5, lerp_speed * dt))
 			s.square.y = math.lerp(s.square.y, s.target.y, 1 - math.pow(0.5, lerp_speed * dt))
 		}
@@ -128,7 +149,13 @@ main :: proc() {
 		fmt.sbprintln(&sb, "Movement speed:", speed)
 		fmt.sbprintln(&sb, "Speed:", lerp_speed)
 		fmt.sbprintln(&sb, "Deaths:", deaths)
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
+		rl.DrawText(
+			strings.unsafe_to_cstring(&sb),
+			i32(border_width) + 10,
+			i32(border_height) + 10,
+			20,
+			rl.BLACK,
+		)
 		strings.builder_reset(&sb)
 	}
 }
