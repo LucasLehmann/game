@@ -35,7 +35,6 @@ main :: proc() {
 		}
 	}
 	rl.InitWindow(800, 600, "idk")
-	rl.SetTargetFPS(60)
 
 	player := rl.Rectangle{200, 200, 20, 20}
 	squares := make([dynamic]Object, 0, 100) // we like leaking memory 
@@ -55,7 +54,9 @@ main :: proc() {
 	death: f32 = 1
 	border_width := player.width * 3
 	border_height := player.height * 3
+
 	light := true
+	hud := true
 
 	sb := strings.builder_make_len(500)
 
@@ -71,9 +72,11 @@ main :: proc() {
 		if rl.IsKeyDown(.S) do player.y += 10 * speed * dt
 		if rl.IsKeyDown(.D) do player.x += 10 * speed * dt
 		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
+		if rl.IsKeyPressed(.EIGHT) do rl.SetTargetFPS(120)
 		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
 		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
 		if rl.IsKeyPressed(.M) do light = !light
+		if rl.IsKeyPressed(.H) do hud = !hud
 		player.x = clamp(
 			player.x,
 			border_width,
@@ -163,20 +166,22 @@ main :: proc() {
 		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
 		strings.builder_reset(&sb)
 
-		fmt.sbprintln(&sb, "High score:", high_score)
-		fmt.sbprintln(&sb, "Score:", score)
-		fmt.sbprintln(&sb, "Square count:", len(squares))
-		fmt.sbprintln(&sb, "Average score:", avg_score)
-		fmt.sbprintln(&sb, "Movement speed:", speed)
-		fmt.sbprintln(&sb, "Speed:", lerp_speed)
-		fmt.sbprintln(&sb, "Deaths:", deaths)
-		rl.DrawText(
-			strings.unsafe_to_cstring(&sb),
-			i32(border_width) + 10,
-			i32(border_height) + 10,
-			20,
-			light ? rl.BLACK : rl.WHITE,
-		)
-		strings.builder_reset(&sb)
+		if hud {
+			fmt.sbprintln(&sb, "High score:", high_score)
+			fmt.sbprintln(&sb, "Score:", score)
+			fmt.sbprintln(&sb, "Square count:", len(squares))
+			fmt.sbprintln(&sb, "Average score:", avg_score)
+			fmt.sbprintln(&sb, "Movement speed:", speed)
+			fmt.sbprintln(&sb, "Speed:", lerp_speed)
+			fmt.sbprintln(&sb, "Deaths:", deaths)
+			rl.DrawText(
+				strings.unsafe_to_cstring(&sb),
+				i32(border_width) + 10,
+				i32(border_height) + 10,
+				20,
+				light ? rl.BLACK : rl.WHITE,
+			)
+			strings.builder_reset(&sb)
+		}
 	}
 }
