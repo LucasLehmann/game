@@ -51,7 +51,8 @@ main :: proc() {
 	scores: [dynamic]int
 	avg_score: f32
 	dt: f32
-	invuln: f32 = 3
+	invuln: f32
+	death: f32 = 1
 	border_width := player.width * 3
 	border_height := player.height * 3
 	x := 0
@@ -59,21 +60,13 @@ main :: proc() {
 	sb := strings.builder_make_len(500)
 
 	for i in 0 ..< square_count {
-		append(
-			&squares,
-			Object {
-				{0, 0, 20, 20},
-				{
-					rand.float32_range(0, f32(rl.GetScreenWidth())),
-					rand.float32_range(0, f32(rl.GetScreenHeight())),
-				},
-			},
-		)
+		append(&squares, Object{{0, 0, 20, 20}, {0, 0}})
 	}
 
 	for !rl.WindowShouldClose() {
 		dt = rl.GetFrameTime()
 		invuln -= dt
+		death -= dt
 		if rl.IsKeyDown(.W) do player.y -= 10 * speed * dt
 		if rl.IsKeyDown(.S) do player.y += 10 * speed * dt
 		if rl.IsKeyDown(.D) do player.x += 10 * speed * dt
@@ -121,7 +114,7 @@ main :: proc() {
 		rl.DrawRectangleV(
 			{player.x, player.y},
 			{player.width, player.height},
-			invuln <= 0 ? rl.MAGENTA : rl.VIOLET,
+			invuln <= 0 && death <= 0 ? rl.MAGENTA : rl.VIOLET,
 		)
 
 		for &s, idx in squares {
@@ -130,23 +123,27 @@ main :: proc() {
 				{s.square.width, s.square.height},
 				good == idx ? rl.GREEN : rl.BLACK,
 			)
-			if rl.CheckCollisionRecs(s.square, player) {
-				if good == idx {
-					good = (good + 1) % len(squares)
-					score += 1
-					invuln = invuln_timer
-					if score > high_score do high_score = score
-				} else if (idx + 1) % len(squares) == good && invuln > 0 {
-					// just ignore previous green square
-				} else {
-					append(&scores, score)
-					avg_score = (avg_score + f32(score)) / 2
-					player.x = 0
-					player.y = 0
-					score = 0
-					deaths += 1
+			if death <= 0 {
+				if rl.CheckCollisionRecs(s.square, player) {
+					if good == idx {
+						good = (good + 1) % len(squares)
+						score += 1
+						invuln = invuln_timer
+						if score > high_score do high_score = score
+					} else if (idx + 1) % len(squares) == good && invuln > 0 {
+						// just ignore previous green square
+					} else {
+						append(&scores, score)
+						avg_score = (avg_score + f32(score)) / 2
+						player.x = 0
+						player.y = 0
+						score = 0
+						deaths += 1
+						death = invuln_timer
+					}
 				}
 			}
+
 			if rl.CheckCollisionRecs({s.target.x - 20, s.target.y - 20, 40, 40}, s.square) {
 				s.target.x = rand.float32_range(0, f32(rl.GetScreenWidth()))
 				s.target.y = rand.float32_range(0, f32(rl.GetScreenHeight()))
