@@ -16,6 +16,23 @@ Object :: struct {
 }
 
 main :: proc() {
+	if len(os.args) > 1 {
+		switch os.args[1] {
+		case "--help":
+			fallthrough
+		case "-h":
+			fallthrough
+		case "help":
+			fallthrough
+		case "h":
+			fallthrough
+		case "-?":
+			fallthrough
+		case "?":
+			fmt.println("game [Square count] [Movement speed] [Square speed] [Invuln timer (s)]")
+			return
+		}
+	}
 	rl.InitWindow(800, 600, "idk")
 	rl.SetTargetFPS(60)
 
@@ -33,7 +50,6 @@ main :: proc() {
 	invuln: f32
 
 	sb := strings.builder_make_len(100)
-
 
 	for i in 0 ..< square_count {
 		append(&squares, Object{{0, 0, 20, 20}, {0, 0}})
@@ -85,10 +101,10 @@ main :: proc() {
 				s.target.x = rand.float32_range(0, f32(rl.GetScreenWidth()))
 				s.target.y = rand.float32_range(0, f32(rl.GetScreenHeight()))
 			}
-			s.square.x = math.lerp(s.square.x, s.target.x, lerp_speed * dt)
-			s.square.y = math.lerp(s.square.y, s.target.y, lerp_speed * dt)
-			// s.square.x = math.lerp(s.square.x, s.target.x, 1 - math.pow(0.5, lerp_speed * dt))
-			// s.square.y = math.lerp(s.square.y, s.target.y, 1 - math.pow(0.5, lerp_speed * dt))
+			// s.square.x = math.lerp(s.square.x, s.target.x, lerp_speed * dt)
+			// s.square.y = math.lerp(s.square.y, s.target.y, lerp_speed * dt)
+			s.square.x = math.lerp(s.square.x, s.target.x, 1 - math.pow(0.5, lerp_speed * dt))
+			s.square.y = math.lerp(s.square.y, s.target.y, 1 - math.pow(0.5, lerp_speed * dt))
 		}
 		rl.DrawFPS(rl.GetScreenWidth() - 100, 10)
 		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
