@@ -62,8 +62,8 @@ main :: proc() {
 		if rl.IsKeyDown(.S) do player.y += 10 * speed * dt
 		if rl.IsKeyDown(.D) do player.x += 10 * speed * dt
 		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
-		if rl.IsKeyDown(.NINE) do rl.SetTargetFPS(60)
-		if rl.IsKeyDown(.ZERO) do rl.SetTargetFPS(0)
+		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
+		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
 		player.x = clamp(player.x, 0, f32(rl.GetScreenWidth()) - player.width)
 		player.y = clamp(player.y, 0, f32(rl.GetScreenHeight()) - player.height)
 
@@ -98,8 +98,14 @@ main :: proc() {
 				}
 			}
 			if rl.CheckCollisionRecs({s.target.x - 20, s.target.y - 20, 40, 40}, s.square) {
-				s.target.x = rand.float32_range(0, f32(rl.GetScreenWidth()))
-				s.target.y = rand.float32_range(0, f32(rl.GetScreenHeight()))
+				s.target.x = rand.float32_range(
+					-s.square.width * 2,
+					f32(rl.GetScreenWidth()) + s.square.width * 2,
+				)
+				s.target.y = rand.float32_range(
+					-s.square.height * 2,
+					f32(rl.GetScreenHeight()) + s.square.height * 2,
+				)
 			}
 			// s.square.x = math.lerp(s.square.x, s.target.x, lerp_speed * dt)
 			// s.square.y = math.lerp(s.square.y, s.target.y, lerp_speed * dt)
