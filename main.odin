@@ -30,6 +30,7 @@ main :: proc() {
 			fallthrough
 		case "?":
 			fmt.println("game [Square count] [Movement speed] [Square speed] [Invuln timer (s)]")
+			fmt.println("defaults 10 50 1 0.1")
 			return
 		}
 	}
@@ -46,6 +47,9 @@ main :: proc() {
 	score := 0
 	high_score := 0
 	good := 0
+	deaths := 0
+	scores: [dynamic]int
+	avg_score: f32
 	dt: f32
 	invuln: f32
 
@@ -64,8 +68,12 @@ main :: proc() {
 		if rl.IsKeyDown(.A) do player.x -= 10 * speed * dt
 		if rl.IsKeyPressed(.NINE) do rl.SetTargetFPS(60)
 		if rl.IsKeyPressed(.ZERO) do rl.SetTargetFPS(0)
-		player.x = clamp(player.x, 0, f32(rl.GetScreenWidth()) - player.width)
-		player.y = clamp(player.y, 0, f32(rl.GetScreenHeight()) - player.height)
+		player.x = clamp(player.x, player.width * 3, f32(rl.GetScreenWidth()) - player.width * 4)
+		player.y = clamp(
+			player.y,
+			player.height * 3,
+			f32(rl.GetScreenHeight()) - player.height * 4,
+		)
 
 		rl.BeginDrawing()
 		defer rl.EndDrawing()
@@ -83,29 +91,26 @@ main :: proc() {
 				{s.square.width, s.square.height},
 				good == idx ? rl.GREEN : rl.BLACK,
 			)
-			if invuln <= 0 {
-				if rl.CheckCollisionRecs(s.square, player) {
-					if good == idx {
-						good = (good + 1) % len(squares)
-						score += 1
-						invuln = invuln_timer
-						if score > high_score do high_score = score
-					} else {
-						player.x = 0
-						player.y = 0
-						score = 0
-					}
+			if rl.CheckCollisionRecs(s.square, player) {
+				if good == idx {
+					good = (good + 1) % len(squares)
+					score += 1
+					invuln = invuln_timer
+					if score > high_score do high_score = score
+				} else if (idx + 1) % len(squares) == good && invuln > 0 {
+					// just ignore previous green square
+				} else {
+					append(&scores, score)
+					avg_score = avg_score + f32(score) / 2
+					player.x = 0
+					player.y = 0
+					score = 0
+					deaths += 1
 				}
 			}
 			if rl.CheckCollisionRecs({s.target.x - 20, s.target.y - 20, 40, 40}, s.square) {
-				s.target.x = rand.float32_range(
-					-s.square.width * 2,
-					f32(rl.GetScreenWidth()) + s.square.width * 2,
-				)
-				s.target.y = rand.float32_range(
-					-s.square.height * 2,
-					f32(rl.GetScreenHeight()) + s.square.height * 2,
-				)
+				s.target.x = rand.float32_range(0, f32(rl.GetScreenWidth()))
+				s.target.y = rand.float32_range(0, f32(rl.GetScreenHeight()))
 			}
 			// s.square.x = math.lerp(s.square.x, s.target.x, lerp_speed * dt)
 			// s.square.y = math.lerp(s.square.y, s.target.y, lerp_speed * dt)
@@ -116,20 +121,14 @@ main :: proc() {
 		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
 		strings.builder_reset(&sb)
 
-		fmt.sbprint(&sb, "High score:", high_score)
+		fmt.sbprintln(&sb, "High score:", high_score)
+		fmt.sbprintln(&sb, "Score:", score)
+		fmt.sbprintln(&sb, "Square count:", len(squares))
+		fmt.sbprintln(&sb, "Average score:", avg_score)
+		fmt.sbprintln(&sb, "Movement speed:", speed)
+		fmt.sbprintln(&sb, "Speed:", lerp_speed)
+		fmt.sbprintln(&sb, "Deaths:", deaths)
 		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 10, 20, rl.BLACK)
-		strings.builder_reset(&sb)
-		fmt.sbprint(&sb, "Score:", score)
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 30, 20, rl.BLACK)
-		strings.builder_reset(&sb)
-		fmt.sbprint(&sb, "Square count:", len(squares))
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 70, 20, rl.BLACK)
-		strings.builder_reset(&sb)
-		fmt.sbprint(&sb, "Movement speed:", speed)
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 50, 20, rl.BLACK)
-		strings.builder_reset(&sb)
-		fmt.sbprint(&sb, "Speed:", lerp_speed)
-		rl.DrawText(strings.unsafe_to_cstring(&sb), 10, 90, 20, rl.BLACK)
 		strings.builder_reset(&sb)
 	}
 }
