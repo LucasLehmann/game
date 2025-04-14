@@ -7,7 +7,6 @@ import "core:math"
 import "core:math/rand"
 import "core:os"
 import "core:strconv"
-import "core:strings"
 import "core:time"
 
 // version: 1
@@ -63,8 +62,6 @@ main :: proc() {
 	light := true
 	hud := true
 
-	sb := strings.builder_make_len(500)
-
 	for i in 0 ..< square_count {
 		append(&squares, Object{{0, 0, 20, 20}, {0, 0}})
 	}
@@ -93,12 +90,12 @@ main :: proc() {
 			player.y += move.y * 10 * speed * dt
 		}
 
-
 		if rl.IsKeyPressed(.EIGHT) {rl.SetTargetFPS(120)}
 		if rl.IsKeyPressed(.NINE) {rl.SetTargetFPS(60)}
 		if rl.IsKeyPressed(.ZERO) {rl.SetTargetFPS(0)}
 		if rl.IsKeyPressed(.M) {light = !light}
-		if rl.IsKeyPressed(.H) {hud = !hud}
+		if rl.IsKeyPressed(.H) || rl.IsGamepadButtonPressed(0, .MIDDLE_RIGHT) {hud = !hud}
+
 
 		player.x = clamp(
 			player.x,
@@ -188,21 +185,22 @@ main :: proc() {
 		rl.DrawFPS(rl.GetScreenWidth() - 100, 10)
 
 		if hud {
-			fmt.sbprintln(&sb, "High score:", high_score)
-			fmt.sbprintln(&sb, "Score:", score)
-			fmt.sbprintln(&sb, "Square count:", len(squares))
-			fmt.sbprintln(&sb, "Average score:", avg_score)
-			fmt.sbprintln(&sb, "Movement speed:", speed)
-			fmt.sbprintln(&sb, "Speed:", lerp_speed)
-			fmt.sbprintln(&sb, "Deaths:", deaths)
 			rl.DrawText(
-				strings.unsafe_to_cstring(&sb),
+				rl.TextFormat(
+					"High score: %i\nScore: %i\nSquare count: %i\nAverage score: %.2f\nMovement speed: %.2f\nSpeed: %.2f\nDeaths: %i",
+					high_score,
+					score,
+					len(squares),
+					avg_score,
+					speed,
+					lerp_speed,
+					deaths,
+				),
 				i32(border_width) + 10,
 				i32(border_height) + 10,
 				20,
 				light ? rl.BLACK : rl.WHITE,
 			)
-			strings.builder_reset(&sb)
 		}
 	}
 	fmt.println("Scores:", scores)
