@@ -73,10 +73,27 @@ main :: proc() {
 		dt = rl.GetFrameTime()
 		invuln -= dt
 		death -= dt
-		if rl.IsKeyDown(.W) {player.y -= 10 * speed * dt}
-		if rl.IsKeyDown(.S) {player.y += 10 * speed * dt}
-		if rl.IsKeyDown(.D) {player.x += 10 * speed * dt}
-		if rl.IsKeyDown(.A) {player.x -= 10 * speed * dt}
+
+		// https://mathproofs.blogspot.com/2005/07/mapping-square-to-circle.html
+		{move := [2]f32{0, 0}
+			r, l := rl.GetGamepadAxisMovement(0, .RIGHT_X), rl.GetGamepadAxisMovement(0, .LEFT_X)
+			x := abs(r) - abs(l) > 0 ? r : l
+			r, l = rl.GetGamepadAxisMovement(0, .RIGHT_Y), rl.GetGamepadAxisMovement(0, .LEFT_Y)
+			y := abs(r) - abs(l) < 0 ? l : r
+			move.x = x * math.sqrt(1 - 0.5 * y * y)
+			move.y = y * math.sqrt(1 - 0.5 * x * x)
+
+			if rl.IsKeyDown(.W) {move.y = -1}
+			if rl.IsKeyDown(.S) {move.y = 1}
+			if rl.IsKeyDown(.D) {move.x = 1}
+			if rl.IsKeyDown(.A) {move.x = -1}
+			if abs(move.x) < 0.1 {move.x = 0}
+			if abs(move.y) < 0.1 {move.y = 0}
+			player.x += move.x * 10 * speed * dt
+			player.y += move.y * 10 * speed * dt
+		}
+
+
 		if rl.IsKeyPressed(.EIGHT) {rl.SetTargetFPS(120)}
 		if rl.IsKeyPressed(.NINE) {rl.SetTargetFPS(60)}
 		if rl.IsKeyPressed(.ZERO) {rl.SetTargetFPS(0)}
