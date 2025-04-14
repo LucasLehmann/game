@@ -43,7 +43,7 @@ main :: proc() {
 	square_count := len(os.args) > 1 ? strconv.atoi(os.args[1]) : 10
 	speed := f32(len(os.args) > 2 ? strconv.atof(os.args[2]) : 50)
 	lerp_speed := f32(len(os.args) > 3 ? strconv.atof(os.args[3]) : 1)
-	invuln_timer := f32(len(os.args) > 4 ? strconv.atof(os.args[4]) : 0.5)
+	invuln_time := f32(len(os.args) > 4 ? strconv.atof(os.args[4]) : 0.5)
 
 	score := 0
 	high_score := 0
@@ -54,8 +54,8 @@ main :: proc() {
 
 	good := 0
 	dt: f32
-	invuln: f32
-	death: f32 = 1
+	invuln_timer: f32
+	death_timer: f32 = 1
 
 	border_width := player.width * 3
 	border_height := player.height * 3
@@ -71,8 +71,8 @@ main :: proc() {
 
 	for !rl.WindowShouldClose() {
 		dt = rl.GetFrameTime()
-		invuln -= dt
-		death -= dt
+		invuln_timer -= dt
+		death_timer -= dt
 
 		// https://mathproofs.blogspot.com/2005/07/mapping-square-to-circle.html
 		{move := [2]f32{0, 0}
@@ -147,7 +147,7 @@ main :: proc() {
 		rl.DrawRectangleV(
 			{player.x, player.y},
 			{player.width, player.height},
-			invuln <= 0 && death <= 0 ? rl.MAGENTA : rl.VIOLET,
+			invuln_timer <= 0 && death_timer <= 0 ? rl.MAGENTA : rl.VIOLET,
 		)
 
 		for &s, idx in squares {
@@ -157,14 +157,14 @@ main :: proc() {
 				// TODO: STOP JUST LIKE DON'T
 				good == idx ? light ? rl.GREEN : rl.DARKGREEN : light ? rl.BLACK : rl.WHITE,
 			)
-			if death <= 0 {
+			if death_timer <= 0 {
 				if rl.CheckCollisionRecs(s.square, player) {
 					if good == idx {
 						good = (good + 1) % len(squares)
 						score += 1
-						invuln = invuln_timer
+						invuln_timer = invuln_time
 						if score > high_score {high_score = score}
-					} else if (idx + 1) % len(squares) == good && invuln > 0 {
+					} else if (idx + 1) % len(squares) == good && invuln_timer > 0 {
 						// just ignore previous green square
 					} else {
 						append(&scores, score)
@@ -173,7 +173,7 @@ main :: proc() {
 						player.y = 0
 						score = 0
 						deaths += 1
-						death = invuln_timer
+						death_timer = invuln_time
 					}
 				}
 			}
